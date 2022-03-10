@@ -24,5 +24,19 @@ namespace View
         {
             InitializeComponent();
         }
+
+        private void ConvertToCelcius(object sender, RoutedEventArgs e)
+        {
+            var fahrenheit = double.Parse(textBoxFahrenheit.Text);
+            var celsius = Math.Round((fahrenheit - 32) / 1.8,2);
+            MessageBox.Show(this,celsius.ToString() + " °C","Celcius");
+        }
+
+        private void ConvertToFahrenheit(object sender, RoutedEventArgs e)
+        {
+            var celcius = double.Parse(textBoxCelcius.Text);
+            var fahrenheit = Math.Round(celcius * 1.8 + 32,2);
+            MessageBox.Show(this, fahrenheit.ToString() + "°F", "Fahrenheit");
+        }
     }
 }
