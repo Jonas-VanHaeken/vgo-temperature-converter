@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:View"
         mc:Ignorable="d"
-        Title="Converter" Height="350" Width="525">
+        x:Name="mainWindow"
+        Title="MainWindow" Height="350" Width="525">
     <Window.Resources>
         <Style x:Key="labelStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="Background">
@@ -20,59 +21,58 @@
             <Setter Property="FontSize" Value="16" />
             <Setter Property="Padding" Value="2" />
         </Style>
-        <Style x:Key="TextboxStyle" TargetType="{x:Type TextBox}">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Style x:Key="textBoxStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="16" />
         </Style>
-
-        <Style x:Key="ButtonStyle" TargetType="{x:Type Button}">
-            <Setter Property="FontSize" Value="12"/>
+        <Style x:Key="buttonStyle" TargetType="{x:Type Button}">
+            <Setter Property="FontSize" Value="16" />
         </Style>
-    </Window.Resources>
+        <local:TemperatureConverter x:Key="celsiusConverter">
+            <local:TemperatureConverter.TemperatureScale>
+                <local:CelciusTemperatureScale />
+            </local:TemperatureConverter.TemperatureScale>
+        </local:TemperatureConverter>
+        <local:TemperatureConverter x:Key="fahrenheitConverter">
+            <local:TemperatureConverter.TemperatureScale>
+                <local:FahrenheitTemperatureScale />
+            </local:TemperatureConverter.TemperatureScale>
+        </local:TemperatureConverter>
+            </Window.Resources>
     <StackPanel>
-
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
+                <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Celsius" Style="{StaticResource labelStyle}"/>
-            <TextBox Grid.Row="1" x:Name="textBoxCelsius" Style="{StaticResource TextboxStyle}"/>
-            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Content="Convert celsius" Click="ConvertCelsius" Style="{StaticResource ButtonStyle}"/>
+            <TextBlock Grid.Row="0" Text="Celsius" Style="{StaticResource labelStyle}" />
+            <TextBox Grid.Row="1"  x:Name="celsiusTextBox" Style="{StaticResource textBoxStyle}" Text="{Binding ElementName=mainWindow, Path=TemperatureInKelvin, Converter={StaticResource celsiusConverter}, UpdateSourceTrigger=PropertyChanged}" />
         </Grid>
-
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
+                <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Fahrenheit" Style="{StaticResource labelStyle}"/>
-            <TextBox Grid.Row="1" x:Name="textBoxFahrenheit" Style="{StaticResource TextboxStyle}"/>
-            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Content="Convert fahrenheit" Click="ConvertFahrenheit" Style="{StaticResource ButtonStyle}"/>
+            <TextBlock Grid.Row="0" Text="Fahrenheit" Style="{StaticResource labelStyle}" />
+            <TextBox Grid.Row="1"  x:Name="fahrenheitTextBox" Style="{StaticResource textBoxStyle}"  Text="{Binding ElementName=mainWindow, Path=TemperatureInKelvin, Converter={StaticResource fahrenheitConverter}, UpdateSourceTrigger=PropertyChanged}" />
         </Grid>
-
         <Grid>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
+                <RowDefinition />
+                <RowDefinition />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Kelvin" Style="{StaticResource labelStyle}"/>
-            <TextBox Grid.Row="1" x:Name="textBoxKelvin" Style="{StaticResource TextboxStyle}"/>
-            <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Content="Convert kelvin" Click="ConvertKelvin" Style="{StaticResource ButtonStyle}"/>
+            <TextBlock Grid.Row="0" Text="Kelvin" Style="{StaticResource labelStyle}" />
+            <TextBox Grid.Row="1" Text="{Binding ElementName=slider, Path=Value, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource textBoxStyle}" />
         </Grid>
-
-
+        <Slider x:Name="slider" Minimum="0" Maximum="1000" Value="{Binding ElementName=mainWindow, Path=TemperatureInKelvin}" />
     </StackPanel>
 </Window>

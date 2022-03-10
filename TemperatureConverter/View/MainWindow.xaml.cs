@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,39 +20,50 @@ namespace View
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+       private double temperatureInKelvin;
+
+       public double TemperatureInKelvin
+       {
+           get
+           {
+               return temperatureInKelvin;
+           }
+           set
+           {
+               temperatureInKelvin = value;
+
+               PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TemperatureInKelvin)));
+                
+           }
+       }
+        
         public MainWindow()
         {
             InitializeComponent();
         }
+    }
 
-        private void ConvertFahrenheit(object sender, RoutedEventArgs e)
+    public class TemperatureConverter : IValueConverter
+    {
+        public ITemperatureScale TemperatureScale { get; set; }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var fahrenheit = double.Parse(textBoxFahrenheit.Text);
-            var celsius = Math.Round((fahrenheit - 32) / 1.8,2);
-            var kelvin = Math.Round(celsius + 273.15, 2);
-            textBoxCelsius.Text = celsius.ToString();
-            textBoxKelvin.Text = kelvin.ToString();
+            var kelvin = (double)value;
+
+            return this.TemperatureScale.ConvertFromKelvin(kelvin).ToString();
         }
 
-        private void ConvertCelsius(object sender, RoutedEventArgs e)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var celsius = double.Parse(textBoxCelsius.Text);
-            var fahrenheit = Math.Round(celsius * 1.8 + 32,2);
-            var kelvin = Math.Round(celsius + 273.15,2);
-            textBoxFahrenheit.Text = fahrenheit.ToString();
-            textBoxKelvin.Text = kelvin.ToString();
-        }
+            var temperature = double.Parse((string)value);
 
-        private void ConvertKelvin(object sender, RoutedEventArgs e)
-        {
-            var kelvin = double.Parse(textBoxKelvin.Text);
-            var celsius = Math.Round(kelvin - 273.15,2);
-            var fahrenheit = Math.Round(celsius * 1.8 + 32, 2);
-           
-            textBoxFahrenheit.Text = fahrenheit.ToString();
-            textBoxCelsius.Text = celsius.ToString();
+            return this.TemperatureScale.ConvertToKelvin(temperature);
         }
     }
+
 }
