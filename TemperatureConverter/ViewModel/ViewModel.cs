@@ -4,81 +4,98 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using Cells;
 using Model;
 
 namespace ViewModel
 {
-    public class ConverterViewModel : INotifyPropertyChanged
+    public class ConverterViewModel
 
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private double temperatureInKelvin;
-
-        public double TemperatureInKelvin
-        {
-            get
-            {
-                return temperatureInKelvin;
-            }
-            set
-            {
-                temperatureInKelvin = value;
-
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TemperatureInKelvin)));
-
-            }
-        }
-
         public ConverterViewModel()
         {
+            this.TemperatureInKelvin = new Cell<double>();
+
             this.Kelvin = new TemperatureScaleViewModel(this, new KelvinTemperatureScale());
             this.Celsius = new TemperatureScaleViewModel(this, new CelciusTemperatureScale());
             this.Fahrenheit = new TemperatureScaleViewModel(this, new FahrenheitTemperatureScale());
-
         }
 
+        public Cell<double> TemperatureInKelvin { get; set; }
+
         public TemperatureScaleViewModel Kelvin { get; }
+
         public TemperatureScaleViewModel Celsius { get; }
+
         public TemperatureScaleViewModel Fahrenheit { get; }
 
         public IEnumerable<TemperatureScaleViewModel> Scales
         {
             get
             {
-                yield return this.Celsius;
-                yield return this.Fahrenheit;
-                yield return this.Kelvin;
+                yield return Celsius;
+                yield return Fahrenheit;
+                yield return Kelvin;
             }
         }
     }
 
-    public class TemperatureScaleViewModel : INotifyPropertyChanged
+    public class TemperatureScaleViewModel
     {
         private readonly ConverterViewModel parent;
+
         private readonly ITemperatureScale temperatureScale;
 
         public TemperatureScaleViewModel(ConverterViewModel parent, ITemperatureScale temperatureScale)
         {
-            this.temperatureScale = temperatureScale;
             this.parent = parent;
+            this.temperatureScale = temperatureScale;
 
-            this.parent.PropertyChanged += (sender, args) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Temperature)));
+            this.Temperature = this.parent.TemperatureInKelvin.Derive(kelvin => temperatureScale.ConvertFromKelvin(kelvin), temp => temperatureScale.ConvertToKelvin(temp));
+
+            var minimum = temperatureScale.ConvertFromKelvin(0);
+            var maximum = temperatureScale.ConvertFromKelvin(1000);
+
+            this.Add = new AddCommand(this.Temperature, 1, minimum, maximum);
+            this.Min = new AddCommand(this.Temperature, -1, minimum, maximum);
         }
 
         public string Name => temperatureScale.Name;
 
-        public double Temperature {
-            get
-            {
-                return temperatureScale.ConvertFromKelvin(parent.TemperatureInKelvin);
-            }
-            set
-            { 
-                parent.TemperatureInKelvin = temperatureScale.ConvertToKelvin(value);
-            }
+        public Cell<double> Temperature { get; }
+
+        public ICommand Add { get; }
+        public ICommand Min { get; }
+    } 
+
+    public class AddCommand : ICommand
+    {
+        private readonly Cell<double> cell;
+        private readonly int delta;
+        private readonly double minimum, maximum;
+
+        public AddCommand(Cell<double> cell, int delta, double minimum, double maximum)
+        {
+            this.cell = cell;
+            this.delta = delta;
+            this.minimum = minimum;
+            this.maximum = maximum;
+
+            cell.PropertyChanged += (sender, args) => CanExecuteChanged(this, new EventArgs());
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-    } 
+        public event EventHandler CanExecuteChanged;
+
+        public bool CanExecute(object parameter)
+        {
+            var newValue = cell.Value + delta;
+            return newValue >= minimum && newValue <= maximum;
+        }
+
+        public void Execute(object parameter)
+        {
+            cell.Value = Math.Round(cell.Value + delta);
+        }
+    }
 }
